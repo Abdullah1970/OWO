@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 OwO Bot Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.31/dist/vue.global.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a0000 0%, #330000 50%, #000000 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #cc0000, #660000, #990000, #330000);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            z-index: -1;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-30px) rotate(180deg); opacity: 0.8; }
+        }
+        .dashboard-container {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(204, 0, 0, 0.3);
+            border-radius: 24px;
+            backdrop-filter: blur(25px);
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+            box-shadow: 0 20px 40px rgba(204, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        .tab-content { 
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .tab-content.active { 
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tab-button { 
+            cursor: pointer; 
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            border: 2px solid transparent;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-right: 1rem;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tab-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(204, 0, 0, 0.2), transparent);
+            transition: left 0.8s;
+        }
+        
+        .tab-button:hover::before {
+            left: 100%;
+        }
+        
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .tab-button.active { 
+            background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            background-size: 300% 300%;
+            animation: gradientFlow 3s ease infinite;
+            border-color: rgba(255, 255, 255, 0.3);
+            font-weight: 600;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        .status-running {
+            background: linear-gradient(45deg, #10B981, #34D399);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+        }
+        .status-stopped {
+            background: linear-gradient(45deg, #EF4444, #F87171);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #cc0000, #990000);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(204, 0, 0, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(204, 0, 0, 0.6);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+        }
+        .feature-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            transition: all 0.3s ease;
+        }
+        .feature-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(204, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card:hover {
+            background: rgba(204, 0, 0, 0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(204, 0, 0, 0.4);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .log-container {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 8px;
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .toggle-switch.active {
+            background: linear-gradient(135deg, #10B981, #34D399);
+        }
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(26px);
+        }
+        .header-title {
+            background: linear-gradient(135deg, #ff0000, #cc0000, #990000, #660000);
+            background-size: 300% 300%;
+            animation: gradientFlow 4s ease infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 3rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <div class="container mx-auto max-w-7xl">
+        <!-- Enhanced Header -->
+        <div class="glass-card">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="header-title">🎮 OwO Bot Dashboard</h1>
+                    <p class="text-gray-300 text-lg">Advanced Discord Farming Bot Control Center</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="testStart()" class="btn-success">
+                        <i class="fas fa-rocket mr-2"></i>Launch Bot
+                    </button>
+                    <button onclick="testStop()" class="btn-danger">
+                        <i class="fas fa-power-off mr-2"></i>Stop Bot
+                    </button>
+                    <a href="/setup" class="btn-primary" style="text-decoration: none;">
+                        <i class="fas fa-cog mr-2"></i>Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div id="app">
+            <!-- Enhanced Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="flex items-center justify-center mb-3">
+                        <i class="fas fa-robot text-3xl text-blue-400"></i>
+                    </div>
+                    <h3 class="text-gray-300 text-sm font-medium mb-2">Bot Status</h3>
+                    <div class="flex items-center justify-center">
+                        <span class="status-indicator" :class="stats.status === 'Running' && 'status-running' || 'status-stopped'"></span>
+                        <span class="stat-value">{{ stats.status }}</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="flex items-center justify-center mb-3">
+                        <i class="fas fa-hashtag text-3xl text-green-400"></i>
+                    </div>
+                    <h3 class="text-gray-300 text-sm font-medium mb-2">Active Channels</h3>
+                    <div class="stat-value">{{ stats.channels }}</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="flex items-center justify-center mb-3">
+                        <i class="fas fa-clock text-3xl text-purple-400"></i>
+                    </div>
+                    <h3 class="text-gray-300 text-sm font-medium mb-2">Uptime</h3>
+                    <div class="stat-value">{{ stats.uptime }}</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="flex items-center justify-center mb-3">
+                        <i class="fas fa-bolt text-3xl text-yellow-400"></i>
+                    </div>
+                    <h3 class="text-gray-300 text-sm font-medium mb-2">Last Activity</h3>
+                    <div class="stat-value text-lg">{{ stats.last_activity }}</div>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="glass-card">
+                <div class="flex space-x-2 mb-6">
+                    <div class="tab-button active" @click="activeTab = 'features'" :class="{ active: activeTab === 'features' }">
+                        <i class="fas fa-toggle-on mr-2"></i>Features
+                    </div>
+                    <div class="tab-button" @click="activeTab = 'channels'" :class="{ active: activeTab === 'channels' }">
+                        <i class="fas fa-hashtag mr-2"></i>Channels
+                    </div>
+                    <div class="tab-button" @click="activeTab = 'logs'" :class="{ active: activeTab === 'logs' }">
+                        <i class="fas fa-terminal mr-2"></i>Logs
+                    </div>
+                </div>
+
+                <!-- Features Tab -->
+                <div class="tab-content" :class="{ active: activeTab === 'features' }">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-sliders-h mr-2 text-blue-400"></i>
+                        Bot Features
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="feature-toggle">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="fas fa-crosshairs text-red-400 mr-3 text-lg"></i>
+                                    <span class="capitalize font-medium">Hunt</span>
+                                </div>
+                                <div class="toggle-switch" :class="{ active: stats.features?.hunt }" onclick="toggleFeature('hunt')">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feature-toggle">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="fas fa-sword text-orange-400 mr-3 text-lg"></i>
+                                    <span class="capitalize font-medium">Battle</span>
+                                </div>
+                                <div class="toggle-switch" :class="{ active: stats.features?.battle }" onclick="toggleFeature('battle')">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feature-toggle">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="fas fa-hands text-yellow-400 mr-3 text-lg"></i>
+                                    <span class="capitalize font-medium">Pray</span>
+                                </div>
+                                <div class="toggle-switch" :class="{ active: stats.features?.pray }" onclick="toggleFeature('pray')">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feature-toggle">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="fas fa-skull text-purple-400 mr-3 text-lg"></i>
+                                    <span class="capitalize font-medium">Curse</span>
+                                </div>
+                                <div class="toggle-switch" :class="{ active: stats.features?.curse }" onclick="toggleFeature('curse')">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feature-toggle">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="fas fa-coins text-green-400 mr-3 text-lg"></i>
+                                    <span class="capitalize font-medium">Coinflip</span>
+                                </div>
+                                <div class="toggle-switch" :class="{ active: stats.features?.coinflip }" onclick="toggleFeature('coinflip')">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feature-toggle">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="fas fa-dice text-blue-400 mr-3 text-lg"></i>
+                                    <span class="capitalize font-medium">Slots</span>
+                                </div>
+                                <div class="toggle-switch" :class="{ active: stats.features?.slots }" onclick="toggleFeature('slots')">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Channels Tab -->
+                <div class="tab-content" :class="{ active: activeTab === 'channels' }">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-hashtag mr-2 text-green-400"></i>
+                        Channel Management
+                    </h3>
+                    <div class="feature-toggle">
+                        <p class="text-gray-300">Configure channels in <a href="/setup" class="text-blue-400 hover:text-blue-300">Settings</a></p>
+                    </div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div class="tab-content" :class="{ active: activeTab === 'logs' }">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-terminal mr-2 text-purple-400"></i>
+                        Bot Logs
+                    </h3>
+                    <div class="log-container">
+                        <div v-for="(logEntry, index) in logs" :key="logEntry.id || index" class="mb-2">
+                            <span class="text-gray-400">[<span v-text="logEntry.timestamp || 'Unknown'"></span>]</span>
+                            <span :class="getLogClass(logEntry.level || 'INFO')" v-text="logEntry.message || 'No message'"></span>
+                        </div>
+                        <div v-if="!logs || logs.length === 0" class="text-gray-400 text-center py-8">
+                            No logs available. Start the bot to see activity.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Quick Actions -->
+        <div class="glass-card">
+            <h3 class="text-xl font-semibold mb-4 flex items-center">
+                <i class="fas fa-zap mr-2 text-yellow-400"></i>
+                Quick Actions
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="refreshStatus()" class="btn-primary w-full">
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    Refresh Status
+                </button>
+                <button onclick="exportLogs()" class="btn-primary w-full">
+                    <i class="fas fa-download mr-2"></i>
+                    Export Logs
+                </button>
+                <button onclick="viewStats()" class="btn-primary w-full">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    View Stats
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global functions for onclick handlers
+        function testStart() {
+            if (window.vueApp) {
+                window.vueApp.startBot();
+            }
+        }
+        
+        function testStop() {
+            if (window.vueApp) {
+                window.vueApp.stopBot();
+            }
+        }
+        
+        function toggleFeature(feature) {
+            if (window.vueApp) {
+                window.vueApp.toggleFeature(feature);
+            }
+        }
+        
+        function refreshStatus() {
+            if (window.vueApp) {
+                window.vueApp.refreshStatus();
+            }
+        }
+        
+        function exportLogs() {
+            if (window.vueApp) {
+                window.vueApp.exportLogs();
+            }
+        }
+        
+        function viewStats() {
+            if (window.vueApp) {
+                window.vueApp.viewStats();
+            }
+        }
+
+        const { createApp } = Vue;
+        
+        const app = createApp({
+            data() {
+                return {
+                    activeTab: 'features',
+                    stats: {
+                        status: 'Stopped',
+                        channels: 0,
+                        uptime: '00:00:00',
+                        last_activity: 'Never',
+                        features: {
+                            hunt: true,
+                            battle: true,
+                            pray: true,
+                            curse: true,
+                            coinflip: true,
+                            slots: true
+                        }
+                    },
+                    logs: [],
+                    isStarting: false,
+                    isStopping: false,
+                    statsInterval: null
+                };
+            },
+            methods: {
+                async startBot() {
+                    try {
+                        this.isStarting = true;
+                        const response = await fetch('/api/control/start', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        
+                        const data = await response.json();
+                        console.log('Start response:', data);
+                        
+                        if (response.ok) {
+                            this.stats.status = 'Running';
+                            this.stats.start_time = new Date().toISOString();
+                            this.stats.last_activity = new Date().toLocaleString();
+                            await this.loadStats();
+                        } else {
+                            throw new Error(data.error || 'Failed to start bot');
+                        }
+                    } catch (error) {
+                        console.error('Error starting bot:', error);
+                        alert('Error: ' + error.message);
+                    } finally {
+                        this.isStarting = false;
+                    }
+                },
+                
+                async stopBot() {
+                    try {
+                        this.isStopping = true;
+                        const response = await fetch('/api/control/stop', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        
+                        const data = await response.json();
+                        console.log('Stop response:', data);
+                        
+                        if (response.ok) {
+                            this.stats.status = 'Stopped';
+                            this.stats.uptime = '00:00:00';
+                            await this.loadStats();
+                        } else {
+                            throw new Error(data.error || 'Failed to stop bot');
+                        }
+                    } catch (error) {
+                        console.error('Error stopping bot:', error);
+                        alert('Error: ' + error.message);
+                    } finally {
+                        this.isStopping = false;
+                    }
+                },
+                
+                async toggleFeature(feature) {
+                    try {
+                        const isEnabled = !this.stats.features[feature];
+                        this.stats.features[feature] = isEnabled;
+                        
+                        const response = await fetch('/api/features', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ feature, enabled: isEnabled })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to update feature');
+                        }
+                    } catch (error) {
+                        console.error('Error toggling feature:', error);
+                        this.stats.features[feature] = !this.stats.features[feature];
+                        alert('Failed to update feature: ' + error.message);
+                    }
+                },
+                
+                getFeatureIcon(feature) {
+                    const icons = {
+                        hunt: 'fa-crosshairs',
+                        battle: 'fa-sword',
+                        pray: 'fa-hands-praying',
+                        curse: 'fa-skull',
+                        coinflip: 'fa-coins',
+                        slots: 'fa-dice',
+                        inventory: 'fa-box',
+                        daily: 'fa-calendar-day',
+                        vote: 'fa-vote-yea',
+                        huntbot: 'fa-robot',
+                        quest: 'fa-scroll',
+                        animals: 'fa-paw'
+                    };
+                    return icons[feature] || 'fa-cog';
+                },
+                
+                async loadStats() {
+                    try {
+                        const response = await fetch('/api/stats');
+                        if (response.ok) {
+                            const data = await response.json();
+                            Object.assign(this.stats, data);
+                        }
+                    } catch (error) {
+                        console.error('Error loading stats:', error);
+                    }
+                },
+                
+                exportLogs() {
+                    try {
+                        const logData = this.logs.map((logEntry, index) => {
+                            if (!logEntry) return '[' + index + '] Invalid log entry';
+                            return '[' + (logEntry.timestamp || 'Unknown') + '] ' + (logEntry.message || 'Empty message');
+                        }).join('\n');
+                        const blob = new Blob([logData], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'owo-bot-logs-' + new Date().toISOString().split('T')[0] + '.txt';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    } catch (error) {
+                        console.error('Error exporting logs:', error);
+                        alert('Failed to export logs');
+                    }
+                },
+                
+                viewStats() {
+                    this.activeTab = 'logs';
+                    this.refreshStatus();
+                },
+                
+                async loadInitialStats() {
+                    try {
+                        const response = await fetch('/api/stats');
+                        if (response.ok) {
+                            const data = await response.json();
+                            Object.assign(this.stats, data);
+                        }
+                    } catch (error) {
+                        console.error('Error loading initial stats:', error);
+                    }
+                },
+                
+                refreshStatus() {
+                    fetch('/api/stats')
+                        .then(r => r.json())
+                        .then(d => {
+                            Object.assign(this.stats, d);
+                        })
+                        .catch(e => console.error('Refresh error:', e));
+                },
+                
+                getLogClass(level) {
+                    const classes = {
+                        ERROR: 'text-red-400',
+                        WARNING: 'text-yellow-400', 
+                        INFO: 'text-blue-400',
+                        DEBUG: 'text-gray-400'
+                    };
+                    return classes[level] || 'text-white';
+                }
+            },
+            async mounted() {
+                // Load initial stats from backend
+                await this.loadInitialStats();
+                
+                // Set up auto-refresh of stats every 5 seconds
+                this.statsInterval = setInterval(() => {
+                    this.refreshStatus();
+                }, 5000);
+            },
+            
+            beforeUnmount() {
+                // Clean up interval when component is destroyed
+                if (this.statsInterval) {
+                    clearInterval(this.statsInterval);
+                }
+            }
+        });
+        
+        // Mount the app and store reference globally
+        window.vueApp = app.mount('#app');
+    </script>
+</body>
+</html>
